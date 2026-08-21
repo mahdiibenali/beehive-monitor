@@ -1,0 +1,45 @@
+{
+  "name": "nectaious",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "seed:fake": "tsx --env-file=.env.local scripts/seed-fake.ts",
+    "seed:clear-fake": "tsx --env-file=.env.local scripts/seed-fake.ts --clear",
+    "seed:test-fermes": "tsx --env-file=.env.local scripts/seed-test-user-fermes.ts",
+    "db:check": "tsx --env-file=.env.local scripts/db-check.ts",
+    "verify-login": "tsx --env-file=.env.local scripts/verify-login.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.460.0",
+    "mongoose": "^8.8.0",
+    "next": "^15.1.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-leaflet": "^5.0.0",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "^15.1.0",
+    "mongodb-memory-server": "^11.2.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "tsx": "^4.22.3",
+    "typescript": "^5.7.2"
+  }
+}

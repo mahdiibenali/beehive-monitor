@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Nahoul Mobile",
+    "slug": "nahoul-mobile",
+    "scheme": "nahoul",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "entryPoint": "./index.ts",
+    "splash": {
+      "backgroundColor": "#FFE6CC"
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-camera"
+    ]
+  }
+}

@@ -1,0 +1,142 @@
+@startuml
+title Connexion utilisateur
+
+actor Utilisateur
+participant Application
+participant BaseDeDonnees
+participant Audit
+
+Utilisateur -> Application: Saisir email et mot de passe
+Application -> BaseDeDonnees: Verifier les informations
+
+alt Utilisateur introuvable
+    Application -> Audit: Enregistrer l'echec
+    Application --> Utilisateur: Acces refuse
+else Mot de passe incorrect
+    Application -> Audit: Enregistrer l'echec
+    Application --> Utilisateur: Acces refuse
+else Abonnement expire
+    Application -> Audit: Enregistrer l'echec
+    Application --> Utilisateur: Abonnement expire
+else Connexion reussie
+    Application -> BaseDeDonnees: Mettre a jour derniere connexion
+    Application -> Audit: Enregistrer la connexion
+    Application --> Utilisateur: Acces accorde
+end
+
+@enduml
+
+@startuml
+title Envoi de donnees IoT
+
+actor Simulateur
+participant Application
+participant BaseDeDonnees
+actor ApplicationMobile
+actor TableauDeBord
+
+Simulateur -> Application: Envoyer les mesures des capteurs
+Application -> BaseDeDonnees: Sauvegarder les donnees
+Application --> Simulateur: Donnees recues
+
+TableauDeBord -> Application: Demander les statistiques
+Application -> BaseDeDonnees: Recuperer les dernieres mesures
+Application --> TableauDeBord: Afficher les resultats
+
+ApplicationMobile -> Application: Demander les donnees des ruches
+Application -> BaseDeDonnees: Recuperer fermes et alertes
+Application -> Application: Agreger par periode
+Application --> ApplicationMobile: Envoyer les resultats
+
+@enduml
+
+@startuml
+title Demande de maintenance
+
+actor Apiculteur
+participant Application
+participant BaseDeDonnees
+participant Audit
+actor Administrateur
+
+Apiculteur -> Application: Envoyer une demande
+Application -> BaseDeDonnees: Creer le ticket
+Application -> Audit: Enregistrer la creation
+Application --> Apiculteur: Demande envoyee
+
+Administrateur -> Application: Consulter les demandes
+Application --> Administrateur: Liste des tickets
+
+Administrateur -> Application: Repondre au ticket
+Application -> BaseDeDonnees: Ajouter la reponse
+Application -> Audit: Enregistrer la reponse
+
+Administrateur -> Application: Marquer comme traite
+Application -> BaseDeDonnees: Mettre a jour le statut
+Application -> Audit: Enregistrer la resolution
+Application --> Administrateur: Ticket resolu
+
+@enduml
+
+@startuml
+title Appairage d'une Gateway
+
+actor Apiculteur as A
+participant Application as APP
+participant Camera as CAM
+participant Serveur as SRV
+database BaseDeDonnees as DB
+participant Audit as AL
+
+A -> APP : Navigue vers l'ecran Gateway
+A -> APP : Choisit ferme cible
+A -> APP : Choisit mode QR ou Manuel
+
+alt Mode QR Code
+  APP -> CAM : Active la camera
+  A -> CAM : Scanne le QR
+  CAM --> APP : Serial number decode
+else Mode Manuel
+  A -> APP : Saisit le numero de serie
+end
+
+APP -> SRV : POST /api/gateways {fermeId, serial, source}
+
+SRV -> SRV : getCurrentUser() → session
+SRV -> SRV : canDo(role, "hives.update.own")
+
+alt Session invalide
+  SRV --> APP : 401
+  APP --> A : Redirection login
+end
+
+SRV -> SRV : findApiculteurForSession(session)
+SRV -> DB : Apiculteur.findOne({userId})
+DB --> SRV : Document trouve
+
+SRV -> SRV : Verifie doublon gateway
+
+alt Gateway deja associee
+  SRV --> APP : 409 Conflit
+  APP --> A : Erreur : deja utilisee
+end
+
+SRV -> DB : Telemetry.findOne({gatewayId})
+DB --> SRV : Payload enrichi
+
+SRV -> SRV : Associe gateway a la ferme
+SRV -> DB : doc.save()
+
+alt device_id present dans payload
+  SRV -> DB : Cree ruche automatiquement
+end
+
+alt ferme lat/lng null et location dans payload
+  SRV -> DB : Met a jour localisation
+end
+
+SRV -> AL : logAudit(gateway.pair, serial)
+SRV --> APP : 201 {gateway, ferme}
+APP --> A : "Gateway appairee !"
+
+@enduml

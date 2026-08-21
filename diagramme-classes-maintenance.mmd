@@ -1,0 +1,113 @@
+classDiagram
+    %% ===== 1. ACTEURS =====
+
+    class Apiculteur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +telephone: String
+        +totalRuches: Number
+        +totalFermes: Number
+        +userId: ObjectId
+        +dateCreation: Date
+        +findById(id) Apiculteur
+        +findOne(email) Apiculteur
+    }
+
+    class Administrateur {
+        +codeAcces: String
+        +derniereConnexion: Date
+        +traiterDemandeMaintenance() void
+    }
+
+    %% ===== 2. TICKET DE MAINTENANCE =====
+
+    class DemandeMaintenance {
+        +id: ObjectId
+        +apiculteurId: ObjectId
+        +apiculteurSnapshot: Object
+        +titre: String
+        +description: String
+        +statut: String
+        +dateDebut: Date
+        +dateEcheance: Date
+        +dateTraitement: Date
+        +traitePar: Object
+        +pieceJointe: String
+        +derniereActivite: Date
+        +replies[]: Reponse
+        +dateCreation: Date
+        +dateModification: Date
+        +findById(id) DemandeMaintenance
+        +findByIdAndUpdate(id, data) DemandeMaintenance
+        +countDocuments(filtre) Number
+        +create(donnees) DemandeMaintenance
+        +soumettre() void
+        +traiter() void
+        +cloturer() void
+    }
+
+    class Reponse {
+        +id: ObjectId
+        +message: String
+        +date: Date
+        +auteurId: ObjectId
+        +auteurNom: String
+        +auteurRole: String
+        +auteurAvatar: String
+    }
+
+    class SnapshotApiculteur {
+        +nom: String
+        +email: String
+        +telephone: String
+        +avatar: String
+        +totalRuches: Number
+        +totalFermes: Number
+        +dateInscription: Date
+    }
+
+    class Intervenant {
+        +id: ObjectId
+        +nom: String
+        +role: String
+    }
+
+    Apiculteur "1" --> "0..*" DemandeMaintenance : soumet
+    Administrateur "1" --> "0..*" DemandeMaintenance : traite
+    DemandeMaintenance "1" --> "0..*" Reponse : contient
+    DemandeMaintenance "1" --> "1" SnapshotApiculteur : dénormalise
+    DemandeMaintenance "1" --> "0..1" Intervenant : traité par
+
+    %% ===== 3. NOTIFICATIONS ET AUDIT =====
+
+    class Notification {
+        +id: ObjectId
+        +userId: ObjectId
+        +roleCible: String
+        +titre: String
+        +message: String
+        +type: String
+        +estLue: Boolean
+        +dateCreation: Date
+        +create(donnees) Notification
+        +find(filtre) Notification[]
+    }
+
+    class JournalAudit {
+        +id: ObjectId
+        +action: String
+        +acteur: Object
+        +entite: String
+        +entiteId: String
+        +resume: String
+        +statut: String
+        +changements: Object[]
+        +dateCreation: Date
+        +logAudit(entree) void
+        +diffFields(avant, apres, champs) Object[]
+    }
+
+    DemandeMaintenance --> Notification : alerte
+    DemandeMaintenance --> JournalAudit : chaque action tracee
+    Notification --> Apiculteur : notifie

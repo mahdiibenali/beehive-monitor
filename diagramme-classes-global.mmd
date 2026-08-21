@@ -1,0 +1,232 @@
+classDiagram
+    class Utilisateur {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +motDePasseHash: String
+        +role: String
+        +telephone: String
+        +genre: String
+        +region: String
+        +avatar: String
+        +estActif: Boolean
+        +derniereConnexion: Date
+        +derniereActivite: Date
+        +dateCreation: Date
+        +dateModification: Date
+        +getCurrentUser() SessionUser
+        +toSessionUser(doc) SessionUser
+        +findById(id) Utilisateur
+        +findOne(email) Utilisateur
+    }
+
+    class Apiculteur {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +telephone: String
+        +genre: String
+        +region: String
+        +totalRuches: Number
+        +totalFermes: Number
+        +statutAbonnement: String
+        +dureeAbonnementMois: Number
+        +debutAbonnement: Date
+        +finAbonnement: Date
+        +suspensionAbonnement: Date
+        +tempsRestantMs: Number
+        +adresse: String
+        +latitude: Number
+        +longitude: Number
+        +fermes[]: Ferme
+        +userId: ObjectId
+        +dateCreation: Date
+        +dateModification: Date
+        +findById(id) Apiculteur
+        +findOne(email) Apiculteur
+        +countDocuments(filtre) Number
+    }
+
+    class Ferme {
+        <<SousDocument>>
+        +id: ObjectId
+        +nom: String
+        +nombreRuches: Number
+        +adresse: String
+        +codePlus: String
+        +latitude: Number
+        +longitude: Number
+        +nombreGateways: Number
+        +ruchesEnAlerte: Number
+        +ruches[]: Ruche
+        +gateways[]: Gateway
+    }
+
+    class Ruche {
+        <<SousDocument>>
+        +id: ObjectId
+        +nom: String
+        +numeroSerie: String
+        +etat: String
+        +nombreAlertes: Number
+        +indiceGateway: Number
+        +latitude: Number
+        +longitude: Number
+    }
+
+    class Gateway {
+        <<SousDocument>>
+        +id: ObjectId
+        +numeroSerie: String
+        +etiquette: String
+        +sourceAppairage: String
+        +dateAppairage: Date
+        +dernierPayload: Object
+        +sessions[]: SessionRecolte
+    }
+
+    class SessionRecolte {
+        <<SousDocument>>
+        +id: ObjectId
+        +date: String
+        +heure: String
+        +poidsGrammes: Number
+        +rucheId: String
+        +dateCreation: Date
+        +dateModification: Date
+    }
+
+    class Telemetrie {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +gatewayId: String
+        +rucheId: String
+        +horodatage: Date
+        +payload: Object
+        +dateCreation: Date
+        +dateModification: Date
+        +find(filtre) Telemetrie[]
+        +create(donnees) Telemetrie
+    }
+
+    class Alerte {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +userId: ObjectId
+        +rucheId: String
+        +nomRuche: String
+        +nomFerme: String
+        +titre: String
+        +statut: String
+        +niveauGravite: String
+        +categorie: String
+        +date: String
+        +heure: String
+        +dateCreation: Date
+        +dateModification: Date
+        +find(filtre) Alerte[]
+        +create(donnees) Alerte
+    }
+
+    class Maintenance {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +apiculteurId: ObjectId
+        +apiculteurSnapshot: Object
+        +titre: String
+        +description: String
+        +statut: String
+        +dateDebut: Date
+        +dateEcheance: Date
+        +dateTraitement: Date
+        +traitePar: Object
+        +pieceJointe: String
+        +derniereActivite: Date
+        +replies[]: Reponse
+        +dateCreation: Date
+        +dateModification: Date
+        +findById(id) Maintenance
+        +findByIdAndUpdate(id, data) Maintenance
+        +countDocuments(filtre) Number
+        +create(donnees) Maintenance
+    }
+
+    class Reponse {
+        <<SousDocument>>
+        +id: ObjectId
+        +message: String
+        +date: Date
+        +auteurId: ObjectId
+        +auteurNom: String
+        +auteurRole: String
+        +auteurAvatar: String
+    }
+
+    class Notification {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +userId: ObjectId
+        +roleCible: String
+        +titre: String
+        +message: String
+        +type: String
+        +categorie: String
+        +lien: String
+        +action: String
+        +entite: String
+        +entiteId: String
+        +acteur: Object
+        +lusPar: ObjectId[]
+        +dateCreation: Date
+        +create(donnees) Notification
+        +find(filtre) Notification[]
+        +countDocuments(filtre) Number
+    }
+
+    class Audit {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +acteur: Object
+        +action: String
+        +entite: String
+        +entiteId: String
+        +resume: String
+        +statut: String
+        +changements: Object[]
+        +metadonnees: Object
+        +adresseIP: String
+        +navigateur: String
+        +dateCreation: Date
+        +logAudit(entree) void
+        +diffFields(avant, apres, champs) Object[]
+    }
+
+    class MessageContact {
+        <<Collection MongoDB>>
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +telephone: String
+        +sujet: String
+        +message: String
+        +statut: String
+        +dateCreation: Date
+        +dateModification: Date
+        +create(donnees) MessageContact
+        +find(filtre) MessageContact[]
+    }
+
+    Apiculteur "*" --> "1" Utilisateur : lie a
+    Apiculteur "1" --> "*" Ferme : possede
+    Ferme "1" --> "*" Ruche : contient
+    Ferme "1" --> "*" Gateway : installe
+    Gateway "1" --> "*" SessionRecolte : enregistre
+    Gateway "1" --> "*" Telemetrie : emet
+    Utilisateur "1" --> "*" Alerte : genere
+    Apiculteur "1" --> "*" Maintenance : cree
+    Maintenance "1" --> "*" Reponse : contient
+    Utilisateur "*" --> "*" Audit : effectue
+    Utilisateur "1" --> "*" Notification : recoit
+    Utilisateur "*" --> "*" MessageContact : soumet

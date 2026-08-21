@@ -1,0 +1,291 @@
+classDiagram
+    %% ===== 1. HIÉRARCHIE UTILISATEUR =====
+
+    class Utilisateur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +motDePasseHash: String
+        +telephone: String
+        +genre: String
+        +avatar: String
+        +role: String
+        +estActif: Boolean
+        +derniereConnexion: Date
+        +derniereActivite: Date
+        +dateCreation: Date
+        +dateModification: Date
+        +connecter() void
+        +deconnecter() void
+        +reinitialiserMotDePasse() void
+    }
+
+    class Visiteur {
+        +datePremiereVisite: Date
+        +consulterOffres() void
+        +envoyerDevis() void
+        +contacterAdmin() void
+    }
+
+    class Apiculteur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +telephone: String
+        +avatar: String
+        +genre: String
+        +region: String
+        +totalRuches: Number
+        +totalFermes: Number
+        +adresse: String
+        +latitude: Number
+        +longitude: Number
+        +userId: ObjectId
+        +dateCreation: Date
+        +dateModification: Date
+        +appairerRuche() void
+        +consulterTableauDeBord() void
+        +envoyerDemandeMaintenance() void
+    }
+
+    class Administrateur {
+        +codeAcces: String
+        +derniereConnexion: Date
+        +creerCompteApiculteur() void
+        +gererComptes() void
+        +consulterTableauDeBord() void
+        +traiterDemandeMaintenance() void
+    }
+
+    class SuperAdmin {
+        +creerCompteAdmin() void
+        +gererAdministrateurs() void
+        +consulterAudit() void
+        +reinitialiserCodeAdmin() void
+        +telechargerRapport() void
+    }
+
+    Utilisateur <|-- Visiteur : hérite
+    Utilisateur <|-- Apiculteur : hérite
+    Utilisateur <|-- Administrateur : hérite
+    Administrateur <|-- SuperAdmin : hérite
+
+    %% ===== 2. ABONNEMENT =====
+
+    class Abonnement {
+        +id: ObjectId
+        +type: String
+        +dateDebut: Date
+        +dateFin: Date
+        +estActif: Boolean
+        +montant: Number
+        +activer() void
+        +suspendre() void
+        +expirer() void
+    }
+
+    Apiculteur "1" --> "1" Abonnement : souscrit à
+
+    %% ===== 3. FERMES ET RUCHES =====
+
+    class Ferme {
+        +id: ObjectId
+        +nom: String
+        +nombreRuches: Number
+        +adresse: String
+        +codePlus: String
+        +latitude: Number
+        +longitude: Number
+        +nombreGateways: Number
+        +ruchesEnAlerte: Number
+        +getLocalisationGPS() Object
+        +getNombreRuches() Number
+    }
+
+    class Ruche {
+        +id: ObjectId
+        +nom: String
+        +numeroSerie: String
+        +etat: String
+        +nombreAlertes: Number
+        +indiceGateway: Number
+        +latitude: Number
+        +longitude: Number
+        +getIndicateursSante() Object
+        +getDonneesTempsReel() Object
+    }
+
+    class Gateway {
+        +id: ObjectId
+        +numeroSerie: String
+        +etiquette: String
+        +sourceAppairage: String
+        +dateAppairage: Date
+        +dernierPayload: Object
+        +connecter() void
+        +synchroniserDonnees() void
+    }
+
+    Apiculteur "1" --> "0..*" Ferme : possède
+    Ferme "1" --> "0..*" Ruche : contient
+    Ruche "1" --> "1" Gateway : communique via
+
+    %% ===== 4. STRUCTURE INTERNE DE LA RUCHE =====
+
+    class Chambre {
+        +id: ObjectId
+        +nom: String
+        +temperature: Float
+        +humidite: Float
+        +pression: Float
+        +vitesseAbeilles: Float
+        +detectionMouvement: Boolean
+        +horodatage: Date
+        +getMesures() Object
+    }
+
+    class Capteur {
+        +id: ObjectId
+        +type: String
+        +unite: String
+        +valeur: Float
+        +horodatage: Date
+        +niveauBatterie: Float
+        +lire() Float
+        +calibrer() void
+    }
+
+    class CollecteurVenin {
+        +id: ObjectId
+        +estActif: Boolean
+        +niveauRemplissage: Float
+        +quantiteCollectee: Float
+        +etatCables: String
+        +tensionCables: Float
+        +planificationActive: Boolean
+        +activer() void
+        +desactiver() void
+        +planifierActivation() void
+    }
+
+    class PlanificationVenin {
+        +id: ObjectId
+        +heureDebut: DateTime
+        +heureFin: DateTime
+        +recurrence: String
+        +estActive: Boolean
+        +activer() void
+        +desactiver() void
+    }
+
+    Ruche "1" --> "0..*" Chambre : composé de
+    Chambre "1" --> "0..*" Capteur : mesuré par
+    Ruche "1" --> "0..1" CollecteurVenin : équipé de
+    CollecteurVenin "1" --> "0..*" PlanificationVenin : planifié par
+
+    %% ===== 5. ALERTES ET NOTIFICATIONS =====
+
+    class Alerte {
+        +id: ObjectId
+        +userId: ObjectId
+        +rucheId: String
+        +nomRuche: String
+        +nomFerme: String
+        +titre: String
+        +statut: String
+        +niveauGravite: String
+        +categorie: String
+        +date: String
+        +heure: String
+        +dateCreation: Date
+        +dateModification: Date
+        +traiter() void
+        +changerStatut() void
+        +supprimer() void
+    }
+
+    class Notification {
+        +id: ObjectId
+        +userId: ObjectId
+        +roleCible: String
+        +titre: String
+        +message: String
+        +type: String
+        +categorie: String
+        +lien: String
+        +estLue: Boolean
+        +dateCreation: Date
+        +envoyer() void
+        +marquerLue() void
+    }
+
+    class HistoriqueAlerte {
+        +id: ObjectId
+        +alerteId: String
+        +dateArchivage: Date
+        +resolution: String
+        +archiver() void
+        +consulter() void
+    }
+
+    Ruche "1" --> "0..*" Alerte : génère
+    Alerte "1" --> "1" Notification : déclenche
+    Alerte "1" --> "1" HistoriqueAlerte : archivé dans
+
+    %% ===== 6. SERVICES =====
+
+    class DemandeMaintenance {
+        +id: ObjectId
+        +apiculteurId: ObjectId
+        +titre: String
+        +description: String
+        +statut: String
+        +dateDebut: Date
+        +dateEcheance: Date
+        +dateTraitement: Date
+        +traitePar: Object
+        +pieceJointe: String
+        +dateCreation: Date
+        +dateModification: Date
+        +soumettre() void
+        +traiter() void
+        +cloturer() void
+    }
+
+    class Devis {
+        +id: ObjectId
+        +prenom: String
+        +nom: String
+        +email: String
+        +message: String
+        +statut: String
+        +traitePar: Object
+        +dateTraitement: Date
+        +dateCreation: Date
+        +envoyer() void
+        +traiter() void
+    }
+
+    class JournalAudit {
+        +id: ObjectId
+        +action: String
+        +acteur: Object
+        +entite: String
+        +entiteId: String
+        +resume: String
+        +statut: String
+        +changements: Object[]
+        +metadonnees: Object
+        +adresseIP: String
+        +navigateur: String
+        +dateCreation: Date
+        +enregistrer() void
+        +consulter() void
+    }
+
+    Apiculteur "1" --> "0..*" DemandeMaintenance : soumet
+    Administrateur "1" --> "0..*" DemandeMaintenance : traite
+    Visiteur "1" --> "0..*" Devis : envoie
+    Administrateur "1" --> "0..*" Devis : traite
+    Administrateur "1" --> "0..*" JournalAudit : consulte
+    JournalAudit "0..*" --> "1" Utilisateur : enregistre actions de

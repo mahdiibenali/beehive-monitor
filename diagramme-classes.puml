@@ -1,0 +1,125 @@
+@startuml
+title Diagramme de classes — Plateforme Nahoul
+
+class Utilisateur {
+    Nom
+    Email
+    Mot de passe (crypte)
+    Role : admin / apiculteur
+    Telephone
+    Region
+    Actif ?
+    Derniere connexion
+}
+
+class Apiculteur {
+    Nom
+    Email
+    Telephone
+    Genre
+    Region
+    Nombre de ruches
+    Nombre de fermes
+    Abonnement : actif / expire / suspendu
+    Date fin abonnement
+    Adresse
+    Coordonnees GPS
+}
+
+class Ferme {
+    Nom
+    Adresse
+    Nombre de ruches
+    Coordonnees GPS
+    Code Plus
+}
+
+class Ruche {
+    Nom
+    Numero de serie
+    Etat : alerte / normale
+    Coordonnees GPS
+}
+
+class Gateway {
+    Numero de serie
+    Etiquette
+    Source : QR / manuel
+    Date d'appairage
+}
+
+class SessionRecolte {
+    Date
+    Heure
+    Poids (grammes)
+    Ruche associee
+}
+
+class Telemetrie {
+    Gateway associee
+    Ruche associee
+    Date et heure
+    Donnees des capteurs
+}
+
+class Alerte {
+    Titre
+    Statut : resolue / en cours / non resolue
+    Categorie : batterie / capteur / venin
+    Date
+    Heure
+}
+
+class Maintenance {
+    Titre
+    Description
+    Statut : traite / non traite
+    Date de creation
+    Date de traitement
+    Piece jointe
+}
+
+class Reponse {
+    Message
+    Date
+    Auteur
+}
+
+class Notification {
+    Titre
+    Message
+    Type : info / succes / avertissement / erreur
+    Categorie : batterie / capteur / venin
+    Lue ?
+}
+
+class Audit {
+    Action effectuee
+    Entite concernee
+    Resume
+    Statut : succes / echec
+    Adresse IP
+    Date
+}
+
+class MessageContact {
+    Nom
+    Email
+    Sujet
+    Message
+    Statut : non lu / lu / traite
+}
+
+' Associations
+
+Utilisateur "1" -- "*" Alerte : possede
+Apiculteur "1" -- "1" Utilisateur : lie a
+Apiculteur "1" -- "*" Ferme : contient
+Ferme "1" -- "*" Ruche : contient
+Ferme "1" -- "*" Gateway : contient
+Gateway "1" -- "*" SessionRecolte : enregistre
+Gateway "1" -- "*" Telemetrie : emet
+Apiculteur "1" -- "*" Maintenance : cree
+Maintenance "1" -- "*" Reponse : contient
+
+@enduml

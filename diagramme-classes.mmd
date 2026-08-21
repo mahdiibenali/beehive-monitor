@@ -1,0 +1,168 @@
+classDiagram
+    class Utilisateur {
+        <<Collection>>
+        +Nom
+        +Email
+        +MotDePasse
+        +Role
+        +Telephone
+        +Genre
+        +Region
+        +Avatar
+        +EstActif
+        +DerniereConnexion
+        +DerniereActivite
+        +DateCreation
+    }
+
+    class Apiculteur {
+        <<Collection>>
+        +Nom
+        +Email
+        +Telephone
+        +Genre
+        +Region
+        +TotalRuches
+        +TotalFermes
+        +StatutAbonnement
+        +DureeAbonnementMois
+        +DebutAbonnement
+        +FinAbonnement
+        +SuspensionAbonnement
+        +Adresse
+        +Latitude
+        +Longitude
+        +DateCreation
+    }
+
+    class Ferme {
+        <<SousDocument>>
+        +Nom
+        +Adresse
+        +NombreRuches
+        +CodePlus
+        +Latitude
+        +Longitude
+        +NombreGateways
+        +RuchesEnAlerte
+    }
+
+    class Ruche {
+        <<SousDocument>>
+        +Nom
+        +NumeroSerie
+        +Etat
+        +NombreAlertes
+        +IndiceGateway
+        +Latitude
+        +Longitude
+    }
+
+    class Gateway {
+        <<SousDocument>>
+        +NumeroSerie
+        +Etiquette
+        +SourceAppairage
+        +DateAppairage
+        +DernierPayload
+    }
+
+    class SessionRecolte {
+        <<SousDocument>>
+        +Date
+        +Heure
+        +PoidsGrammes
+        +RucheConcernee
+        +DateCreation
+    }
+
+    class Telemetrie {
+        <<Collection>>
+        +GatewayEmetteur
+        +RucheSource
+        +Horodatage
+        +DonneesCapteurs
+        +DateCreation
+    }
+
+    class Alerte {
+        <<Collection>>
+        +Titre
+        +Statut
+        +NiveauGravite
+        +Categorie
+        +Date
+        +Heure
+        +DateCreation
+    }
+
+    class Maintenance {
+        <<Collection>>
+        +Titre
+        +Description
+        +Statut
+        +DateDebut
+        +DateEcheance
+        +DateTraitement
+        +PieceJointe
+        +DerniereActivite
+        +DateCreation
+    }
+
+    class Reponse {
+        <<SousDocument>>
+        +Message
+        +Date
+        +AuteurNom
+        +AuteurRole
+        +AuteurAvatar
+    }
+
+    class Notification {
+        <<Collection>>
+        +Titre
+        +Message
+        +Type
+        +Categorie
+        +Lien
+        +ActionAssociee
+        +EntiteAssociee
+        +DateCreation
+    }
+
+    class Audit {
+        <<Collection>>
+        +ActionRealisee
+        +EntiteConcernee
+        +IdentifiantEntite
+        +Resume
+        +Statut
+        +ChangementsEffectues
+        +AdresseIP
+        +Navigateur
+        +DateCreation
+    }
+
+    class MessageContact {
+        <<Collection>>
+        +Nom
+        +Email
+        +Telephone
+        +Sujet
+        +Message
+        +Statut
+        +DateCreation
+    }
+
+    Apiculteur "*" --> "1" Utilisateur : lie a
+    Apiculteur "1" --> "*" Ferme : possede
+    Ferme "1" --> "*" Ruche : contient
+    Ferme "1" --> "*" Gateway : installe
+    Gateway "1" --> "*" SessionRecolte : enregistre
+    Gateway "1" --> "*" Telemetrie : emet
+    Utilisateur "1" --> "*" Alerte : genere
+    Apiculteur "1" --> "*" Maintenance : cree
+    Maintenance "1" --> "*" Reponse : contient
+    Utilisateur "*" --> "*" Audit : effectue
+    Utilisateur "1" --> "*" Notification : recoit
+    Utilisateur "*" --> "*" MessageContact : soumet

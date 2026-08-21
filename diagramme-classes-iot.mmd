@@ -1,0 +1,233 @@
+classDiagram
+    %% ===== 1. DOMAINE FERME / RUCHE =====
+
+    class Ferme {
+        +id: ObjectId
+        +nom: String
+        +nombreRuches: Number
+        +adresse: String
+        +codePlus: String
+        +latitude: Number
+        +longitude: Number
+        +nombreGateways: Number
+        +ruchesEnAlerte: Number
+        +getLocalisationGPS() Object
+        +getNombreRuches() Number
+    }
+
+    class Ruche {
+        +id: ObjectId
+        +nom: String
+        +numeroSerie: String
+        +etat: String
+        +nombreAlertes: Number
+        +indiceGateway: Number
+        +latitude: Number
+        +longitude: Number
+        +getIndicateursSante() Object
+        +getDonneesTempsReel() Object
+    }
+
+    class Gateway {
+        +id: ObjectId
+        +numeroSerie: String
+        +etiquette: String
+        +sourceAppairage: String
+        +dateAppairage: Date
+        +dernierPayload: Object
+        +sessions[]: SessionRecolte
+        +connecter() void
+        +synchroniserDonnees() void
+    }
+
+    class SessionRecolte {
+        +id: ObjectId
+        +date: String
+        +heure: String
+        +poidsGrammes: Number
+        +rucheId: String
+        +dateCreation: Date
+    }
+
+    Ferme "1" --> "0..*" Ruche : contient
+    Ruche "1" --> "1" Gateway : communique via
+    Gateway "1" --> "0..*" SessionRecolte : enregistre
+
+    %% ===== 2. STRUCTURE INTERNE DE LA RUCHE =====
+
+    class Chambre {
+        +id: ObjectId
+        +nom: String
+        +temperature: Float
+        +humidite: Float
+        +pression: Float
+        +vitesseAbeilles: Float
+        +detectionMouvement: Boolean
+        +horodatage: Date
+        +getMesures() Object
+    }
+
+    class Capteur {
+        +id: ObjectId
+        +type: String
+        +unite: String
+        +valeur: Float
+        +horodatage: Date
+        +niveauBatterie: Float
+        +lire() Float
+        +calibrer() void
+    }
+
+    class CollecteurVenin {
+        +id: ObjectId
+        +estActif: Boolean
+        +niveauRemplissage: Float
+        +quantiteCollectee: Float
+        +etatCables: String
+        +tensionCables: Float
+        +planificationActive: Boolean
+        +activer() void
+        +desactiver() void
+        +planifierActivation() void
+    }
+
+    class PlanificationVenin {
+        +id: ObjectId
+        +heureDebut: DateTime
+        +heureFin: DateTime
+        +recurrence: String
+        +estActive: Boolean
+        +activer() void
+        +desactiver() void
+    }
+
+    Ruche "1" --> "0..*" Chambre : composé de
+    Chambre "1" --> "0..*" Capteur : mesuré par
+    Ruche "1" --> "0..1" CollecteurVenin : équipé de
+    CollecteurVenin "1" --> "0..*" PlanificationVenin : planifié par
+
+    %% ===== 3. TÉLÉMÉTRIE =====
+
+    class Telemetrie {
+        +id: ObjectId
+        +gatewayId: String
+        +rucheId: String
+        +horodatage: Date
+        +payload: Object
+        +dateCreation: Date
+        +dateModification: Date
+        +find(filtre) Telemetrie[]
+        +create(donnees) Telemetrie
+    }
+
+    class PayloadTelemetrie {
+        <<Structure>>
+        +gatewayId: String
+        +gatewayTimestamp: Date
+        +positionGPS: Object
+        +alimentation: Object
+        +environnement: Object
+        +moduleVenin: Object
+        +capteursRuches: Object[]
+    }
+
+    class Position {
+        +latitude: Number
+        +longitude: Number
+        +altitude: Number
+    }
+
+    class Alimentation {
+        +chargeBatterie: Number
+        +tensionBatterie: Number
+        +statutCharge: String
+        +temperature: Number
+    }
+
+    class Environnement {
+        +temperatureAmbiante: Number
+        +humiditeAmbiante: Number
+    }
+
+    class ModuleVenin {
+        +statutGrille: String
+        +integriteGrille: String
+        +tensionExcitation: Number
+    }
+
+    class CapteurRuche {
+        +idAppareil: String
+        +horodatage: Date
+        +temperature: Number
+        +humidite: Number
+        +pression: Number
+        +position: String
+        +analyseIA: Object
+    }
+
+    class AnalyseIA {
+        +codeSanteAbeilles: Number
+        +labelSante: String
+        +niveauActivite: String
+    }
+
+    Gateway "1" --> "0..*" Telemetrie : émet
+    Telemetrie "1" --> "1" PayloadTelemetrie : contient
+    PayloadTelemetrie --> Position : contient
+    PayloadTelemetrie --> Alimentation : contient
+    PayloadTelemetrie --> Environnement : contient
+    PayloadTelemetrie --> ModuleVenin : contient
+    PayloadTelemetrie --> CapteurRuche : contient
+    CapteurRuche --> AnalyseIA : contient
+
+    %% ===== 4. SIMULATEUR =====
+
+    class Simulateur {
+        <<Application Python>>
+        +urlAPI: String
+        +intervalleEnvoi: Number
+        +ruches: Object[]
+        +estActif: Boolean
+        +demarrer() void
+        +arreter() void
+        +envoyerTelemetrie() void
+        +genererQR() Image
+        +verifierUniciteGateway(id) Boolean
+        +recupererRuches() Object[]
+    }
+
+    Simulateur --> Telemetrie : génère
+
+    %% ===== 5. ALERTES =====
+
+    class Alerte {
+        +id: ObjectId
+        +userId: ObjectId
+        +rucheId: String
+        +nomRuche: String
+        +nomFerme: String
+        +titre: String
+        +statut: String
+        +niveauGravite: String
+        +categorie: String
+        +date: String
+        +heure: String
+        +dateCreation: Date
+        +find(filtre) Alerte[]
+        +create(donnees) Alerte
+    }
+
+    class Notification {
+        +id: ObjectId
+        +userId: ObjectId
+        +titre: String
+        +message: String
+        +type: String
+        +estLue: Boolean
+        +dateCreation: Date
+        +envoyer() void
+        +marquerLue() void
+    }
+
+    Telemetrie --> Alerte : déclenche
+    Alerte "1" --> "1" Notification : notifie

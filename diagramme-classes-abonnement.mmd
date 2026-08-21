@@ -1,0 +1,129 @@
+classDiagram
+    %% ===== 1. APICULTEUR ET ABONNEMENT =====
+
+    class Apiculteur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +telephone: String
+        +genre: String
+        +region: String
+        +totalRuches: Number
+        +totalFermes: Number
+        +statutAbonnement: String
+        +dureeAbonnementMois: Number
+        +debutAbonnement: Date
+        +finAbonnement: Date
+        +suspensionAbonnement: Date
+        +tempsRestantMs: Number
+        +latitude: Number
+        +longitude: Number
+        +adresse: String
+        +userId: ObjectId
+        +dateCreation: Date
+        +findOne(email) Apiculteur
+        +findById(id) Apiculteur
+        +countDocuments(filtre) Number
+    }
+
+    class Abonnement {
+        +id: ObjectId
+        +type: String
+        +dateDebut: Date
+        +dateFin: Date
+        +estActif: Boolean
+        +montant: Number
+        +activer() void
+        +suspendre() void
+        +expirer() void
+    }
+
+    class CycleAbonnement {
+        <<Mécanisme>>
+        +checkApiculteurAccess(email) Object
+        +deriveStatus(statut, fin) String
+        +calculerFinAbonnement(debut, mois) Date
+        +suspendreAbonnement(id) void
+        +reactiverAbonnement(id) void
+        +verifierExpiration(ids) void
+    }
+
+    class ResultatAcces {
+        <<Interface>>
+        +ok: Boolean
+        +raison: String
+        +statutEffectif: String
+        +message: String
+    }
+
+    Apiculteur "1" --> "1" Abonnement : souscrit à
+    Apiculteur --> CycleAbonnement : contrôlé par
+    CycleAbonnement --> ResultatAcces : produit
+
+    %% ===== 2. DOMAINE FERME / RUCHE =====
+
+    class Ferme {
+        +id: ObjectId
+        +nom: String
+        +nombreRuches: Number
+        +adresse: String
+        +codePlus: String
+        +latitude: Number
+        +longitude: Number
+        +nombreGateways: Number
+        +ruchesEnAlerte: Number
+    }
+
+    class Ruche {
+        +id: ObjectId
+        +nom: String
+        +numeroSerie: String
+        +etat: String
+        +nombreAlertes: Number
+        +indiceGateway: Number
+        +latitude: Number
+        +longitude: Number
+    }
+
+    class Gateway {
+        +id: ObjectId
+        +numeroSerie: String
+        +etiquette: String
+        +sourceAppairage: String
+        +dateAppairage: Date
+        +dernierPayload: Object
+    }
+
+    class SessionRecolte {
+        +id: ObjectId
+        +date: String
+        +heure: String
+        +poidsGrammes: Number
+        +rucheId: String
+        +dateCreation: Date
+    }
+
+    Apiculteur "1" --> "0..*" Ferme : possède
+    Ferme "1" --> "0..*" Ruche : contient
+    Ferme "1" --> "0..*" Gateway : installe
+    Gateway "1" --> "0..*" SessionRecolte : enregistre
+
+    %% ===== 3. DASHBOARD =====
+
+    class DashboardApiculteur {
+        <<Mécanisme>>
+        +getStats() Object
+        +getRepartitionGeographique() Object
+        +getTendances() Object
+        +exporterCSV() Fichier
+    }
+
+    class Utilisateur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +role: String
+    }
+
+    Apiculteur --> DashboardApiculteur : alimente
+    Utilisateur --> Apiculteur : authentifie

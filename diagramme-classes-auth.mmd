@@ -1,0 +1,139 @@
+classDiagram
+    %% ===== 1. HIÉRARCHIE UTILISATEUR =====
+
+    class Utilisateur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +motDePasseHash: String
+        +telephone: String
+        +role: String
+        +estActif: Boolean
+        +derniereConnexion: Date
+        +derniereActivite: Date
+        +dateCreation: Date
+        +getCurrentUser() SessionUser
+        +toSessionUser(doc) SessionUser
+        +findById(id) Utilisateur
+        +findOne(email) Utilisateur
+    }
+
+    class Visiteur {
+        +datePremiereVisite: Date
+        +consulterOffres() void
+        +envoyerDevis() void
+        +contacterAdmin() void
+    }
+
+    class Apiculteur {
+        +id: ObjectId
+        +nom: String
+        +email: String
+        +userId: ObjectId
+        +dateCreation: Date
+        +findById(id) Apiculteur
+        +findOne(email) Apiculteur
+    }
+
+    class Administrateur {
+        +codeAcces: String
+        +derniereConnexion: Date
+        +creerCompteApiculteur() void
+        +gererComptes() void
+        +traiterDemandeMaintenance() void
+    }
+
+    class SuperAdmin {
+        +creerCompteAdmin() void
+        +gererAdministrateurs() void
+        +consulterAudit() void
+        +telechargerRapport() void
+    }
+
+    Utilisateur <|-- Visiteur : hérite
+    Utilisateur <|-- Apiculteur : hérite
+    Utilisateur <|-- Administrateur : hérite
+    Administrateur <|-- SuperAdmin : hérite
+
+    %% ===== 2. SERVICES D'AUTH =====
+
+    class Session {
+        +nomCookie: String
+        +dureeVie: Number
+        +algorithme: String
+        +createSessionToken(userId) String
+        +verifySessionToken(token) Object
+        +readSession() Object
+        +writeSessionCookie(userId) String
+        +clearSessionCookie() void
+        +sign(payload) String
+    }
+
+    class MotDePasse {
+        +nbRounds: Number
+        +hashPassword(mdp) String
+        +verifyPassword(mdp, hash) Boolean
+    }
+
+    class RolesPermissions {
+        +listeRoles: String[]
+        +permissions: Object
+        +hierarchie: Object
+        +canDo(role, permission) Boolean
+        +hasAtLeastRole(role, requis) Boolean
+        +hasAnyRole(role, autorises) Boolean
+    }
+
+    class SessionUser {
+        <<Interface>>
+        +id: String
+        +nom: String
+        +email: String
+        +role: String
+        +telephone: String
+        +avatar: String
+        +region: String
+        +dateInscription: String
+    }
+
+    Utilisateur --> MotDePasse : utilise
+    Utilisateur --> Session : génère cookie
+    Session --> SessionUser : produit
+    Utilisateur --> RolesPermissions : vérifie droits
+
+    %% ===== 3. JOURNAL D'AUDIT =====
+
+    class JournalAudit {
+        +id: ObjectId
+        +action: String
+        +acteur: Object
+        +entite: String
+        +entiteId: String
+        +resume: String
+        +statut: String
+        +changements: Object[]
+        +adresseIP: String
+        +navigateur: String
+        +dateCreation: Date
+        +logAudit(entree) void
+        +diffFields(avant, apres, champs) Object[]
+    }
+
+    class Acteur {
+        <<Sous-document>>
+        +id: ObjectId
+        +email: String
+        +nom: String
+        +role: String
+    }
+
+    class Changement {
+        <<Sous-document>>
+        +champ: String
+        +avant: Object
+        +apres: Object
+    }
+
+    Utilisateur --> JournalAudit : trace actions
+    JournalAudit --> Acteur : contient
+    JournalAudit --> Changement : contient
