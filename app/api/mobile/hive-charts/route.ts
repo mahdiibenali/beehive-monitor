@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Telemetry } from "@/models/Telemetry";
-import { getCurrentUser } from "@/lib/session";
-import { canDo } from "@/lib/roles";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { canDo } from "@/lib/auth/roles";
 
 export const dynamic = "force-dynamic";
 
